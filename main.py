@@ -1,55 +1,122 @@
 import numpy as np
+import tkinter as tk
+from tkinter import filedialog, messagebox, ttk
 from scipy.io import wavfile
 from scipy.signal import butter, lfilter
 from conversion import convertToFloat
 
-# Read audio file
-sampleRate, inputAudio = wavfile.read('source/Test2.wav')
-inputAudio = convertToFloat(inputAudio)
 
-# Split to left and right channel
-if inputAudio.ndim == 2 and inputAudio.shape[1] == 2:
-    leftChannel = inputAudio[:, 0]
-    rightChannel = inputAudio[:, 1]
-else:
-    raise ValueError('Audio is not stereo!')
+class DolbyAudioDecoder:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Dolby Audio Decoder")
+        self.root.geometry("500x400")
+        self.results = {}
+        self.file_path = None
+        self.create_widgets()
 
-# Auxiliary variables
-damping3dB = np.sqrt(2) / 2
-damping6dB = (np.sqrt(2) / 2) * (np.sqrt(2) / 2)
-surroundDelayed = np.zeros((len(inputAudio), 1))
+    def create_widgets(self):
+        # Main frame
+        main_frame = ttk.Frame(self.root)
+        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-# Creation of low-pass and band-pass filters
-[numdLow, dendLow] = butter(3, 80, fs=sampleRate, btype='lowpass')
-[numdPass, dendPass] = butter(2, [100, 7000], fs=sampleRate, btype='bandpass')
+        # File selector frame
+        file_frame = ttk.LabelFrame(main_frame, text="Select file", padding="10")
+        file_frame.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 20))
 
-# Delay variables
-delayTime = 5 * 10 ** (-3)
-delayN = int(np.floor(delayTime / (1 / sampleRate)))
+        self.file_path = tk.StringVar()
+        ttk.Label(file_frame, text="Welect WAV file:").grid(row=0, column=0, sticky=tk.W, pady=(0, 5))
 
-# Surrond Channel Creation
-surroundBeforeFiltering = (leftChannel - rightChannel) * damping3dB
-surroundDelayed[delayN:, 0] = surroundBeforeFiltering[:-delayN]
-surroundAfterFilter = lfilter(numdPass, dendPass, surroundDelayed[:, 0])
-surroundLeft = surroundAfterFilter
-surroundRight = surroundAfterFilter * (-1)
+        file_entry_frame = ttk.Frame(file_frame)
+        file_entry_frame.grid(row=1, column=0, sticky=(tk.W, tk.E))
+        file_entry_frame.columnconfigure(0, weight=1)
 
-# Central and Subwoofer Channel Creation
-centralChannel = ((leftChannel + rightChannel) * damping6dB)
-subwooferChannel = lfilter(numdLow, dendLow, centralChannel)
+        ttk.Entry(file_entry_frame, textvariable=self.file_path, state="readonly", width=50).grid(row=0, column=0,
+                                                                                                  sticky=(tk.W, tk.E),
+                                                                                                  padx=(0, 10))
+        ttk.Button(file_entry_frame, text="Browse", command=self.browse_file).grid(row=0, column=1)
 
-# Read amplitudes on result signals
-LF = max(abs(np.max(leftChannel[14999:30000])), abs(np.min(leftChannel[14999:30000])))
-C = max(abs(np.max(centralChannel[14999:30000])), abs(np.min(centralChannel[14999:30000])))
-RF = max(abs(np.max(rightChannel[14999:30000])), abs(np.min(rightChannel[14999:30000])))
-LFE = max(abs(np.max(subwooferChannel[14999:30000])), abs(np.min(subwooferChannel[14999:30000])))
-SL = max(abs(np.max(surroundLeft[14999:30000])), abs(np.min(surroundLeft[14999:30000])))
-SR = max(abs(np.max(surroundRight[14999:30000])), abs(np.min(surroundRight[14999:30000])))
+        # Buttons frame
+        buttons_frame = ttk.Frame(main_frame)
+        buttons_frame.grid(row=1, column=0, columnspan=2, pady=10)
 
-# Print results
-print(f'Lewy front (LF): {LF:.6f}')
-print(f'Centralny (C): {C:.6f}')
-print(f'Prawy front (RF): {RF:.6f}')
-print(f'Subwoofer (LFE): {LFE:.6f}')
-print(f'Lewy surround: {SL:.6f}')
-print(f'Prawy surround: {SR:.6f}')
+        # Process Button
+        self.process_btn = ttk.Button(buttons_frame, text="Process Audio", command=self.process_audio, state="disabled")
+        self.process_btn.grid(row=0, column=0, padx=(0, 5))
+
+        # Test Button
+        self.test_btn = ttk.Button(buttons_frame, text="Test filtration", state="disabled")
+        self.test_btn.grid(row=0, column=1, padx=(5, 0))
+
+        # Results section
+        results_frame = ttk.LabelFrame(main_frame, text="Results", padding="10")
+        results_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(10, 0))
+
+        # Results text widget with scrollbar
+        text_frame = ttk.Frame(results_frame)
+        text_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        text_frame.columnconfigure(0, weight=1)
+        text_frame.rowconfigure(0, weight=1)
+
+        self.results_text = tk.Text(text_frame, height=15, width=60, state="disabled")
+        scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=self.results_text.yview)
+        self.results_text.configure(yscrollcommand=scrollbar.set)
+
+        self.results_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+
+        # Configure grid weights for resizing
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
+        main_frame.columnconfigure(0, weight=1)
+        main_frame.rowconfigure(2, weight=1)
+        results_frame.columnconfigure(0, weight=1)
+        results_frame.rowconfigure(0, weight=1)
+
+    def browse_file(self):
+        file_path = filedialog.askopenfilename(title="Select WAV Audio File",
+                                               filetypes=[("WAV files", "*.wav")],
+                                               initialdir=".")
+        if file_path:
+            self.file_path.set(file_path)
+            self.process_btn.config(state="normal")
+            self.test_btn.config(state="normal")
+            self.clear_results()
+
+    def clear_results(self):
+        self.results_text.configure(state="normal")
+        self.results_text.delete("1.0", tk.END)
+        self.results_text.configure(state="disabled")
+
+    def add_result_text(self, text):
+        self.results_text.config(state="normal")
+        self.results_text.insert(tk.END, text + "\n")
+        self.results_text.config(state="disabled")
+        self.results_text.see(tk.END)
+
+    def process_audio(self):
+        try:
+            file_path = self.file_path.get()
+            if not file_path:
+                messagebox.showerror("Error", "Please select a WAV file.")
+                return
+
+            self.clear_results()
+            self.add_result_text("Processing audio...")
+            self.add_result_text(f"File path: {file_path}")
+            self.add_result_text("-" * 50)
+
+        except FileNotFoundError:
+            messagebox.showerror("Error", f"File not found: {file_path}")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+
+
+def main():
+    root = tk.Tk()
+    app = DolbyAudioDecoder(root)
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    main()
