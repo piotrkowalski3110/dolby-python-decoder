@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def convertToFloat(data):
     if data.dtype == np.int16:
         return data.astype(np.float64) / 32768.0
