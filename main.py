@@ -152,9 +152,6 @@ class DolbyAudioDecoder:
                     f"Processed files saved to '{output_dir}' directory."
                 )
             else:
-                self.add_result_text(
-                    f"Processing audio with 3dB damping: {damping_3dB:.4f}..."
-                )
                 self.add_result_text("\nResults:")
                 self.add_result_text("-" * 50)
                 for name, data in channels.items():
