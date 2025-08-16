@@ -1,4 +1,4 @@
-# Dolby Audio Decoder (Stereo to 5.1) — GUI
+# Dolby Audio Decoder (Stereo to 5.1) - GUI
 - [English Version](#english)
 - [Polska Wersja](#polski)
 
@@ -18,7 +18,7 @@ Built with Tkinter for the GUI and SciPy/NumPy for audio processing.
 
 The project implements the functionality shown in the following decoder diagram:
 
-![Decoder Scheme](docs)
+![Decoder Scheme](docs/Diagram_Schema_EN.png)
 
 ---
 
@@ -50,10 +50,12 @@ Processing these files should produce channel amplitude results matching the tab
 ---
 
 ### Project structure
-- main.py — GUI application (Tkinter), file I/O, and orchestration
-- audio_processing.py — DSP pipeline and channel matrixing
-- conversion.py — WAV data-to-float conversion helpers
-- output/ — generated WAV files (created on demand)
+- main.py - GUI application (Tkinter), file I/O
+- audio_processing.py - channel filtering and mixing
+- conversion.py - WAV data-to-float conversion helpers
+- output/ - generated WAV files (created on demand)
+- source/ - source files containing test signals
+- docs/ - decoder operation diagrams
 
 ---
 
@@ -131,7 +133,6 @@ Notes:
 ### Troubleshooting
 - “Audio is not stereo!”: Ensure your file has exactly 2 channels.
 - “File not found”: Re-select the file; verify the path and access.
-- Distorted output: Check input file levels; ensure the input is not clipped. Internal float clipping is applied to avoid NaNs for float input.
 - No output files: Use “Process Audio” (not “Test filtration”), and verify you have write permissions to the project folder.
 
 ---
@@ -151,7 +152,7 @@ GUI w Tkinter, przetwarzanie audio w SciPy/NumPy.
 
 Projekt realizuje funkcjonalność przedstawioną na poniższym schemacie dekodera:
 
-[![Schemat dekodera](SCHEMAT_LINK)](SCHEMAT_LINK)
+![Decoder Scheme](docs/Diagram_Schema_PL.png)
 
 ---
 
@@ -183,10 +184,12 @@ Ich przetworzenie powinno dać wyniki zgodne z poniższą tabelą amplitud kana�
 ---
 
 ### Struktura projektu
-- main.py — aplikacja GUI (Tkinter), I/O plików, orkiestracja
-- audio_processing.py — łańcuch DSP i miksowanie kanałów
-- conversion.py — pomocnicze konwersje danych WAV do float
-- output/ — wygenerowane pliki WAV (tworzone w razie potrzeby)
+- main.py - aplikacja GUI (Tkinter), I/O plików
+- audio_processing.py - filtracja i miksowanie kanałów
+- conversion.py - pomocnicze konwersje danych WAV do float
+- output/ - wygenerowane pliki WAV (tworzone w razie potrzeby)
+- source/ - pliki źródłowe zawierające sygnały testowe
+- docs/ - schematy działania dekodera
 
 ---
 
@@ -266,5 +269,4 @@ Uwagi:
 ### Rozwiązywanie problemów
 - „Audio is not stereo!”: Upewnij się, że plik ma dokładnie 2 kanały.
 - „File not found”: Ponownie wybierz plik; sprawdź ścieżkę i uprawnienia.
-- Zniekształcenia: Sprawdź poziomy wejściowe; unikaj przesterowań. Wewnętrzne przycięcie dla float pomaga uniknąć NaN.
 - Brak plików wyjściowych: Użyj „Process Audio” (nie „Test filtration”) i upewnij się, że masz prawa zapisu do folderu projektu.

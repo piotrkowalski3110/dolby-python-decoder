@@ -119,7 +119,7 @@ class DolbyAudioDecoder:
         self.results_text.config(state="disabled")
         self.results_text.see(tk.END)
 
-    def _run_processing(self, damping_3dB, save_to_file=False):
+    def run_processing(self, damping_3dB, save_to_file=False):
         try:
             file_path = self.file_path.get()
             if not file_path:
@@ -167,13 +167,13 @@ class DolbyAudioDecoder:
 
     def process_audio(self):
         damping_value = np.sqrt(2) / 2
-        self._run_processing(damping_value, save_to_file=True)
+        self.run_processing(damping_value, save_to_file=True)
 
     def test_filtration(self):
         damping_value = (np.sqrt(2) / 2) * (
             np.sqrt(2) / 2
         )
-        self._run_processing(damping_value, save_to_file=False)
+        self.run_processing(damping_value, save_to_file=False)
 
 
 def main():

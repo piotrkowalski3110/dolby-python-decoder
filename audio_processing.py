@@ -1,11 +1,11 @@
 import numpy as np
 from scipy.signal import butter, lfilter
 
-from conversion import convertToFloat
+from conversion import convert_to_float
 
 
 def process_audio_channels(input_audio, sample_rate, damping_3dB):
-    input_audio = convertToFloat(input_audio)
+    input_audio = convert_to_float(input_audio)
 
     # Split to left and right channel
     if input_audio.ndim == 2 and input_audio.shape[1] == 2:
